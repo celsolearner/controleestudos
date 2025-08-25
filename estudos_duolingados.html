@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>🎯 Painel de Ofensivas</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin: 20px;
+      font-size: 2.5em;
+    }
+    #days {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px;
+      flex-wrap: wrap;
+    }
+    .day {
+      padding: 15px 20px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.15);
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+    }
+    .day:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .day.done {
+      background: #4caf50;
+      color: white;
+    }
+    .score {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+    #bots, #irrelevantes {
+      max-width: 600px;
+      margin: 20px auto;
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 16px;
+      text-align: left;
+    }
+    .bot {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 12px;
+      margin: 4px 0;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      background: #ff4444;
+      color: white;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #cc0000;
+    }
+    input {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      width: 120px;
+      text-align: center;
+    }
+    .btn-green {
+      background: #4caf50;
+    }
+    .btn-green:hover {
+      background: #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Painel de Ofensivas</h1>
+  <div id="days"></div>
+
+  <div class="score">🔥 Streak: <span id="streak">0</span> dias</div>
+  <div class="score">💎 Pontos: <span id="points">0</span></div>
+  <div class="score">🕹️ Horas irrelevantes: <span id="irrelevantHours">0</span></div>
+
+  <div>
+    <label for="hours">Horas hoje:</label>
+    <input type="number" id="hours" min="1" value="1">
+  </div>
+
+  <button id="reset">🔄 Resetar semana</button>
+  <button id="resetStreak">⚠️ Resetar Streak</button>
+  <button id="spendHour" class="btn-green">⏳ Gastar 1h irrelevante</button>
+
+  <div id="bots"></div>
+
+  <script>
+    const daysEl = document.getElementById("days");
+    const streakEl = document.getElementById("streak");
+    const pointsEl = document.getElementById("points");
+    const irrelevantEl = document.getElementById("irrelevantHours");
+    const botsEl = document.getElementById("bots");
+    const resetBtn = document.getElementById("reset");
+    const resetStreakBtn = document.getElementById("resetStreak");
+    const spendHourBtn = document.getElementById("spendHour");
+    const hoursInput = document.getElementById("hours");
+
+    const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+    let streak = parseInt(localStorage.getItem("streak") || 0);
+    let points = parseInt(localStorage.getItem("points") || 0);
+    let irrelevantHours = parseInt(localStorage.getItem("irrelevantHours") || 0);
+    let completedDays = JSON.parse(localStorage.getItem("completedDays") || "[]");
+    let bots = JSON.parse(localStorage.getItem("bots") || "[]");
+
+    const botIcons = ["🤖","👾","🧠","⚡","🐉","🦾","👽","🐱‍💻","🦸‍♂️","🕹️"];
+
+    function generateBots() {
+      return Array.from({ length: 10 }, (_, i) => ({
+        name: botIcons[i % botIcons.length] + " Bot " + (i + 1),
+        points: Math.floor(Math.random() * 50)
+      }));
+    }
+
+    if (bots.length === 0) {
+      bots = generateBots();
+    }
+
+    function renderDays() {
+      daysEl.innerHTML = "";
+      days.forEach((d, i) => {
+        const div = document.createElement("div");
+        div.className = "day";
+        if (completedDays.includes(i)) div.classList.add("done");
+        div.innerText = d;
+        div.onclick = () => {
+          if (!div.classList.contains("done")) {
+            div.classList.add("done");
+            completedDays.push(i);
+            const hours = Math.max(1, parseInt(hoursInput.value) || 1);
+            points += 10 * hours;
+            streak++;
+            if (hours >= 8) {
+              irrelevantHours++;
+              alert("🎉 Parabéns! Você ganhou uma hora para fazer coisas irrelevantes!");
+            }
+            bots.forEach(bot => {
+              if (Math.random() > 0.5) {
+                bot.points += Math.floor(Math.random() * 8); 
+                if (bot.points > points + 15) bot.points = points + Math.floor(Math.random() * 5);
+              }
+            });
+            save();
+            render();
+          }
+        };
+        daysEl.appendChild(div);
+      });
+    }
+
+    function renderBots() {
+      botsEl.innerHTML = "<h2>🏆 Ranking</h2>";
+      [...bots, { name: "😎 Você", points }].sort((a,b) => b.points - a.points).forEach(b => {
+        const div = document.createElement("div");
+        div.className = "bot";
+        div.innerHTML = `<span>${b.name}</span><span>${b.points} pts</span>`;
+        botsEl.appendChild(div);
+      });
+    }
+
+    function render() {
+      streakEl.innerText = streak;
+      pointsEl.innerText = points;
+      irrelevantEl.innerText = irrelevantHours;
+      renderDays();
+      renderBots();
+    }
+
+    function save() {
+      localStorage.setItem("streak", streak);
+      localStorage.setItem("points", points);
+      localStorage.setItem("irrelevantHours", irrelevantHours);
+      localStorage.setItem("completedDays", JSON.stringify(completedDays));
+      localStorage.setItem("bots", JSON.stringify(bots));
+    }
+
+    resetBtn.onclick = () => {
+      if (confirm("Tem certeza que deseja resetar a semana?")) {
+        completedDays = [];
+        bots = generateBots();
+        points = 0;
+        save();
+        render();
+      }
+    };
+
+    resetStreakBtn.onclick = () => {
+      if (confirm("⚠️ Tem certeza que deseja resetar sua Streak?")) {
+        streak = 0;
+        save();
+        render();
+      }
+    };
+
+    spendHourBtn.onclick = () => {
+      if (irrelevantHours > 0) {
+        irrelevantHours--;
+        save();
+        render();
+      } else {
+        alert("😅 Você não tem horas irrelevantes disponíveis!");
+      }
+    };
+
+    render();
+  </script>
+</body>
+</html>
+
