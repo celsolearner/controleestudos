@@ -121,23 +121,12 @@
     const spendHourBtn = document.getElementById("spendHour");
     const hoursInput = document.getElementById("hours");
 
-let streak = parseInt(localStorage.getItem("streak")||0);
-let points = parseInt(localStorage.getItem("points")||0);
-let irrelevantHours = parseInt(localStorage.getItem("irrelevantHours")||0);
-let completedDays = JSON.parse(localStorage.getItem("completedDays")||"[]");
-let bots = JSON.parse(localStorage.getItem("bots")||null);
-
-if(!bots){
-  bots = generateBots();
-  localStorage.setItem("bots", JSON.stringify(bots));
-}
-
-// Garantir que o localStorage tenha os outros valores iniciais
-localStorage.setItem("streak", streak);
-localStorage.setItem("points", points);
-localStorage.setItem("irrelevantHours", irrelevantHours);
-localStorage.setItem("completedDays", JSON.stringify(completedDays));
-
+    const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+    let streak = parseInt(localStorage.getItem("streak") || 0);
+    let points = parseInt(localStorage.getItem("points") || 0);
+    let irrelevantHours = parseInt(localStorage.getItem("irrelevantHours") || 0);
+    let completedDays = JSON.parse(localStorage.getItem("completedDays") || "[]");
+    let bots = JSON.parse(localStorage.getItem("bots") || "[]");
 
     const botIcons = ["🤖","👾","🧠","⚡","🐉","🦾","👽","🐱‍💻","🦸‍♂️","🕹️"];
 
@@ -242,4 +231,3 @@ localStorage.setItem("completedDays", JSON.stringify(completedDays));
   </script>
 </body>
 </html>
-
